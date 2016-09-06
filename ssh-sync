@@ -5,9 +5,9 @@ excluded=""
 if [ "$1" != "" ]; then
     case $1 in
         -i | -e )
-            tmpputanja=$3
+            tmppath=$3
             if [ $# -eq 2 ]; then
-                tmpputanja=$PWD
+                tmppath=$PWD
             fi
 
             ignore_file_name=".gitignore"
@@ -16,13 +16,12 @@ if [ "$1" != "" ]; then
             fi
 
 
-            gitignore="$tmpputanja/$ignore_file_name"
+            gitignore="$tmppath/$ignore_file_name"
 
             if [ -e $gitignore ]; then
                 for word in `sed '/^$/d' $gitignore`; do
-                    # uklanjamo / sa početka ako postoji
-                    if [[ "$word" == "/"* ]]
-                    then
+                    # removing / from beginning if exist
+                    if [[ "$word" == "/"* ]]; then
                         word=${word:1:1000}
                     fi
                     exclude="--exclude $word $exclude"
@@ -30,59 +29,58 @@ if [ "$1" != "" ]; then
                 done
                 echo -e "Excluded folders: $excluded"
             else
-                echo "Ne postoji fajl za ignorisanje: $ignore_file_name"
+                echo "Missing ignore file: $ignore_file_name"
             fi
             shift
-                                ;;
+                  ;;
         -h | --help )
             echo -e "############### PROGRAM FOR SYNCHRONIZATION WITH SERVER OVER SSH ###############
-Služi za proveru razlika između lokalne i server verzije fajla
+Used for checking differences between locale and remote versions of folder
 
-Opcije
--h - Help - ova stranica
--i - Čitaj pravila za ignorisanje iz .gitignore fajla
--e - Čitaj pravila za ignorisanje iz .exclude fajla
+options
+-h - Help - this page
+-i - Read ignore rules from .gitignore file
+-e - Read ignore rules from .exclude file
 
-Postoji nekoliko programa koji se koriste kao aliasi za ovu skriptu to su:
-dole - Proverava da li na serveru postoje fajlovi koji mogu da se skinu u lokal - ova komanda ne preuzima fajlove
-gore - Proverava da li u lokalu postoje fajlovi koji će se podići na server
-doleee - Preuzima sa servera fajlove koji se razlikuju
-goreee - Diže na server fajlove koji se razlikuju
+There is few files used as aliases for this script:
+down   - Checking files on server and show what will be downloaded if we try to sync - this command not downloading files
+up     - Checking files in local and show what will be uploaded if we try to sync - this command not uploading files
+dooown - Sync using downloading from server for files with differences
+uuup   - Sync using uploading to server for files with differences
 
-Sintaksa (na primeru komande 'dole', na isti način mogu se koristiti i preostale 3
+Usage examples (we are using command 'down' as example but you can use any of rest 3 commands)
 
-# Preuzimanje fajlova sa servera 'default_server' koji se nalaze u tekućem direktorijumu
-dole
+# Downloading files from server 'default_server' comparing to same path on server
+down
 
-# Preuzimanje fajlova sa servera 'default_server' koji se nalaze u direktorijumu '/www/test'
-dole /www/test
+# Downloading files from server  'default_server', compares files from current dir with files in dir '/www/test' on server
+down /www/test
 
-# Preuzimanje fajlova sa servera 'fon' koji se nalaze u direktorijumu '/www/test'
-dole /www/test fon
+# Downloading to current folder from folder '/www/test' on server 'fon'
+down /www/test fon
 
-# Preuzimanje fajlova sa servera 'fon' koji se nalaze u direktorijumu '/www/test2' na serveru a u folderu '/www/lokal' u lokalu
-dole /www/lokal fon /www/test2
+# Downloading to folder '/var/www' in local from folder '/www/test' on server 'fon'
+down /var/www fon /www/test2
 
-
-# Preuzimanje fajlova sa servera 'fon' koji se nalaze u trenutnom direktorijumu
-dole \$PWD fon
+# Downloading from server 'fon' to locale folder
+down \$PWD fon
 
 "
             shift
             exit 1
-                                ;;
+            ;;
     esac
 
 fi
 
 
 
-putanja=$2
+path=$2
 server="default_server"
 remote_path=$2
 
 if [ $# -eq 1 ]; then
-    putanja=$PWD
+    path=$PWD
     remote_path=$PWD
 fi
 
@@ -94,27 +92,27 @@ if [ $# -gt 3 ]; then
 	remote_path=$4
 fi
 
-echo  -e "Local path: \033[41m  ${putanja} \033[0m  Remote path: \033[45m ${remote_path} \033[0m On server: \033[43m ${server} \033[0m "
+echo  -e "Local path: \033[41m  ${path} \033[0m  Remote path: \033[45m ${remote_path} \033[0m On server: \033[43m ${server} \033[0m "
 
 if [ ! -d $2 ]; then
-	echo "File $putanja does not exists"
+	echo "File $path does not exists"
 else
 	if [ $1 -eq 3 ]; then 
 		echo -e "\033[1m\033[31m Upload\n"
-		rsync -rvc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
-		echo rsync -rvc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+		rsync -rvc --exclude .idea  --exclude .git $exclude $path/ $server:$remote_path/
+		echo rsync -rvc --exclude .idea  --exclude .git $exclude $path/ $server:$remote_path/
 	elif [ $1 -eq 4 ]; then 
 		echo -e "\033[1m\033[32m Download\n"
-		rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
-		echo rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+		rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $path/
+		echo rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $path/
 	elif [ $1 -eq 1 ]; then 
 		echo -e "\033[31m Upload\n"
-		rsync -rvnc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
-		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+		rsync -rvnc --exclude .idea  --exclude .git $exclude $path/ $server:$remote_path/
+		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $path/ $server:$remote_path/
 	elif [ $1 -eq 2 ]; then
 		echo -e "\033[32m Download\n"
-		rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
-		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+		rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $path/
+		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $path/
 	else
 	    echo "Unknown option"
 	fi
