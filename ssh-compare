@@ -1,0 +1,41 @@
+#!/bin/bash
+#############################################################
+# File for comparing local and remote version of folder     #
+# Start with command    									#
+# ssh-compare          									    #
+# ssh-compare /local_path									#
+# ssh-compare /local_path	server_name						#
+# ssh-compare /local_path	server_name	/remote_path		#
+#############################################################
+
+path=$1
+server="default_server"
+remote_path=$1
+if [ $# -eq 0 ]; then
+    path=$PWD
+    remote_path=$PWD
+fi
+
+if [ $# -gt 1 ]; then
+	server=$2
+fi
+
+if [ $# -gt 2 ]; then
+	remote_path=$3
+fi
+
+echo  -e "Comparing \033[41m  ${path} \033[0m  in local machine with  \033[45m ${remote_path} \033[0m on server \033[43m ${server} \033[0m "
+
+if [ ! -d "$path" ]; then
+	echo "File $path does not exists"
+else
+	echo "Local >>>> Server";
+	echo -e "\033[31m "
+	rsync -rvnc --exclude .idea --exclude .git $path/ $server:$remote_path/
+	echo -e "\033[0m "
+	
+	echo "Server >>>> Local";
+	echo -e "\033[32m "
+	rsync -rvnc --exclude .idea --exclude .git $server:$remote_path/ $path/
+	echo -e "\033[0m "
+fi

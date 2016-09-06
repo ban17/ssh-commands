@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+server=$1
+my_file=$2
+if [ $# -eq 1 ];then
+    server=default_server
+    my_file=$1
+fi
+
+if [[ ! "$my_file" == "/"* ]]
+then
+    fajl="$PWD/$my_file"
+fi
+
+ssh $server cat "$my_file" | diff -s - "$my_file"  | colordiff

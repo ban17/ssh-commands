@@ -1,0 +1,122 @@
+#!/bin/bash
+exclude=""
+excluded=""
+
+if [ "$1" != "" ]; then
+    case $1 in
+        -i | -e )
+            tmpputanja=$3
+            if [ $# -eq 2 ]; then
+                tmpputanja=$PWD
+            fi
+
+            ignore_file_name=".gitignore"
+            if [ "$1" == "-e" ];then
+                ignore_file_name=".exclude"
+            fi
+
+
+            gitignore="$tmpputanja/$ignore_file_name"
+
+            if [ -e $gitignore ]; then
+                for word in `sed '/^$/d' $gitignore`; do
+                    # uklanjamo / sa početka ako postoji
+                    if [[ "$word" == "/"* ]]
+                    then
+                        word=${word:1:1000}
+                    fi
+                    exclude="--exclude $word $exclude"
+                    excluded="\033[1m\033[31m ::  \033[0m $word  $excluded"
+                done
+                echo -e "Excluded folders: $excluded"
+            else
+                echo "Ne postoji fajl za ignorisanje: $ignore_file_name"
+            fi
+            shift
+                                ;;
+        -h | --help )
+            echo -e "############### PROGRAM FOR SYNCHRONIZATION WITH SERVER OVER SSH ###############
+Služi za proveru razlika između lokalne i server verzije fajla
+
+Opcije
+-h - Help - ova stranica
+-i - Čitaj pravila za ignorisanje iz .gitignore fajla
+-e - Čitaj pravila za ignorisanje iz .exclude fajla
+
+Postoji nekoliko programa koji se koriste kao aliasi za ovu skriptu to su:
+dole - Proverava da li na serveru postoje fajlovi koji mogu da se skinu u lokal - ova komanda ne preuzima fajlove
+gore - Proverava da li u lokalu postoje fajlovi koji će se podići na server
+doleee - Preuzima sa servera fajlove koji se razlikuju
+goreee - Diže na server fajlove koji se razlikuju
+
+Sintaksa (na primeru komande 'dole', na isti način mogu se koristiti i preostale 3
+
+# Preuzimanje fajlova sa servera 'default_server' koji se nalaze u tekućem direktorijumu
+dole
+
+# Preuzimanje fajlova sa servera 'default_server' koji se nalaze u direktorijumu '/www/test'
+dole /www/test
+
+# Preuzimanje fajlova sa servera 'fon' koji se nalaze u direktorijumu '/www/test'
+dole /www/test fon
+
+# Preuzimanje fajlova sa servera 'fon' koji se nalaze u direktorijumu '/www/test2' na serveru a u folderu '/www/lokal' u lokalu
+dole /www/lokal fon /www/test2
+
+
+# Preuzimanje fajlova sa servera 'fon' koji se nalaze u trenutnom direktorijumu
+dole \$PWD fon
+
+"
+            shift
+            exit 1
+                                ;;
+    esac
+
+fi
+
+
+
+putanja=$2
+server="default_server"
+remote_path=$2
+
+if [ $# -eq 1 ]; then
+    putanja=$PWD
+    remote_path=$PWD
+fi
+
+if [ $# -gt 2 ]; then
+	server=$3
+fi
+
+if [ $# -gt 3 ]; then
+	remote_path=$4
+fi
+
+echo  -e "Local path: \033[41m  ${putanja} \033[0m  Remote path: \033[45m ${remote_path} \033[0m On server: \033[43m ${server} \033[0m "
+
+if [ ! -d $2 ]; then
+	echo "File $putanja does not exists"
+else
+	if [ $1 -eq 3 ]; then 
+		echo -e "\033[1m\033[31m Upload\n"
+		rsync -rvc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+		echo rsync -rvc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+	elif [ $1 -eq 4 ]; then 
+		echo -e "\033[1m\033[32m Download\n"
+		rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+		echo rsync -rvc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+	elif [ $1 -eq 1 ]; then 
+		echo -e "\033[31m Upload\n"
+		rsync -rvnc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $putanja/ $server:$remote_path/
+	elif [ $1 -eq 2 ]; then
+		echo -e "\033[32m Download\n"
+		rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+		echo rsync -rvnc --exclude .idea  --exclude .git $exclude $server:$remote_path/ $putanja/
+	else
+	    echo "Unknown option"
+	fi
+		echo -e "\033[0m "
+fi
