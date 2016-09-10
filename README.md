@@ -16,6 +16,15 @@ Best way to use this scripts is:
 3. Set public key for login without password
 
 ### 1. Creating aliases for ssh servers
+To do this you need to edit content of ~/.ssh/config file in your user directory.
+Create that file and add this content to it:
+
+    Host hetzner
+        HostName mywebsitename.com
+        User www-data
+        Port 23482
+
+You need to write everything you need for normal login via ssh command. Only problem is that you can't add password here, and you need to type it. Also there is solution for that too, for that see step 3 in this explanation "Setting public key for login without password"
 
 ### 2. Adding scripts to $PATH
 
