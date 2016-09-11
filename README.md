@@ -27,6 +27,22 @@ Create that file and add this content to it:
 You need to write everything you need for normal login via ssh command. Only problem is that you can't add password here, and you need to type it. Also there is solution for that too, for that see step 3 in this explanation "Setting public key for login without password"
 
 ### 2. Adding scripts to $PATH
+First create folder Scripts in your home folder (or whenever you want)
+Add line bellow to ~/.bashrc file
+
+    export PATH="$PATH:~/Scripts"
+    
+After adding that line run
+    
+    source ~/.bashrc
+    
+After that copy scripts from this folder to that Scripts folder
+
+Be sure that scripts are executable, if they are not you can do for example:
+
+    chmod +x ssh-sync
+
+
 
 ### 3. Setting public key for login without password
 
